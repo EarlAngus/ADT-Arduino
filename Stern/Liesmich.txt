@@ -1,0 +1,8 @@
+Sternstunden,
+Einsteiger-Projekt: LED-Lichteffekte mit Arduino
+----------------------------------------------
+c't 24/14, Seite 204 (tig)
+
+Stern.ino   Beispielprogramm
+
+
