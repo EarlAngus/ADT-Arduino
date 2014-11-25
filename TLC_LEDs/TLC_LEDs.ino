@@ -59,17 +59,45 @@ void setup()
   pinMode(inputPin, INPUT);
 }
 
-/* This loop will create a Knight Rider-like effect if you have LEDs plugged
-   into all the TLC outputs.  NUM_TLCS is defined in "tlc_config.h" in the
-   library folder.  After editing tlc_config.h for your setup, delete the
-   Tlc5940.o file to save the changes. */
-int PHALANXSIZE = 2;
-int POW_HIGH = 4095;
-int POW_NORM = 100;
-int POW_LOW = 0;
-
 void loop()
 {
+//  knightRider();
+  fillingOrChasing();
+}
+
+void knightRider() {
+  const int sensorPin = 0;
+  int direction = 1;
+  int sensorValue = analogRead(sensorPin); // get the sensor value
+  int intensity = map(sensorValue, 0, 1023, 0, 4095); // map to TLC range
+  int dim = intensity / 4; // 1/4 the value dims the LED
+
+  for (int channel = 0; channel < 16; channel += direction) {
+    Tlc.clear();
+    if (channel == 0) {
+      direction = 1;
+    } else {
+      Tlc.set(channel - 1, dim); // set the intensity for prev LED
+    }
+    Tlc.set(channel, intensity); // set the intensity for this LED
+    if (channel < 15) {
+      Tlc.set(channel + 1, dim); // set the intensity for next LED
+    } else {
+      direction = -1;
+    }
+    
+    Tlc.update();
+    delay(75);
+  }
+}
+
+void fillingOrChasing() {
+
+  int PHALANXSIZE = 2;
+  int POW_HIGH = 4095;
+  int POW_NORM = 100;
+  int POW_LOW = 0;
+
   while(true) {
     int val = digitalRead(inputPin);
     if (val == LOW) {
@@ -133,7 +161,7 @@ void loop()
     } else {
       Tlc.clear();
       for (int channel = 0; channel < 16; channel++) {
-        Tlc.set(channel, POW_HIGH);
+        Tlc.set(channel, POW_NORM);
         Tlc.update();
         delay(100);
       }
