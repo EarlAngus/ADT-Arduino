@@ -43,82 +43,92 @@
     This library uses the PWM output ability of digital pins 3, 9, 10, and 11.
     Do not use analogWrite(...) on these pins.
 
-    This sketch does the Knight Rider strobe across a line of LEDs.
-
     Alex Leone <acleone ~AT~ gmail.com>, 2009-02-03 */
 
-/* Number of TLCs daisy-chained. 
- * If more than 16 TLCs are daisy-chained, the channel type has to be changed to 
- * uint16_t. Default is uint8_t, which supports up to 16 TLCs. (see tlc_config.h)
- */
-#define NUM_TLCS    2
+#include <Tlc5940.h>
 
-#include "Tlc5940.h"
+/* additional pins */
+const int brightnessPoti = A0;
+const int buttonPrev = 7;
+const int buttonNext = 8;
 
-void setup()
-{
-  /* Call Tlc.init() to setup the tlc.
-     You can optionally pass an initial PWM value (0 - 4095) for all channels.*/
+const int maxChannel = 16 * NUM_TLCS;
+
+int intensity = 0;
+int buttonUpDnCounter = 0;  // counter for the number of button presses
+int buttonPrevState = 0;    // current state of the button previous
+int buttonNextState = 0;    // current state of the button next
+int lastButtonPrevState = 0;    // current state of the button previous
+int lastButtonNextState = 0;    // current state of the button next
+
+
+
+void setup() {
   Tlc.init();
+  pinMode(brightnessPoti, INPUT);
+  
+  // initialize the button pins as inputs
+  pinMode(buttonPrev, INPUT);
+  pinMode(buttonNext, INPUT);
+
+//  Serial.begin(9600);
 }
 
-/* This loop will create a Knight Rider-like effect if you have LEDs plugged
-   into all the TLC outputs.  NUM_TLCS is defined in "tlc_config.h" in the
-   library folder.  After editing tlc_config.h for your setup, delete the
-   Tlc5940.o file to save the changes. */
-int MAX_CHANNEL = 16*NUM_TLCS;
-int POW_HIGH = 4095;
-int POW_NORM = 1000;
-int POW_LOW = 0;
+void loop() {
+  Tlc.clear();
+  getBrightness();
+  
+  nextState();
 
-void loop()
-{
-  for (int channel = 0; channel < MAX_CHANNEL; channel++) {
+  Tlc.update();
+  delay(75);
+}
 
-    /* Tlc.clear() sets all the grayscale values to zero, but does not send
-       them to the TLCs.  To actually send the data, call Tlc.update() */
-    Tlc.clear();
-    for (int x = 0; x < MAX_CHANNEL; x++) {
-      Tlc.set(x, POW_LOW);
-    }
-    if (channel > 0) {
-      Tlc.set(channel - 1, POW_NORM); 
-    } else {
-      Tlc.set(MAX_CHANNEL - 1, POW_NORM);
-    }
-    Tlc.set(channel, POW_HIGH);
-    if (channel < MAX_CHANNEL - 1) {
-      Tlc.set(channel + 1, POW_NORM);
-    } else {
-      Tlc.set(0, POW_NORM);
-    }
-    Tlc.update();
+void getBrightness() {;
+  int sensorValue = analogRead(brightnessPoti); // get the sensor value
+  intensity = map(sensorValue, 0, 1023, 0, 511); // map to TLC range
+}
 
-    delay(75);
+void nextState() {
+  // read the button input pin
+  buttonPrevState = digitalRead(buttonPrev);
+  // compare the buttonState to its last state
+  if (buttonPrevState != lastButtonPrevState) {
+    // if the state has changed, decrement the counter
+    if (buttonPrevState == HIGH) {
+      // if the current state is HIGH then the button went from off to on
+      buttonUpDnCounter--;
+    }
   }
-  for (int channel = MAX_CHANNEL-2; channel > 0; channel--) {
-
-    /* Tlc.clear() sets all the grayscale values to zero, but does not send
-       them to the TLCs.  To actually send the data, call Tlc.update() */
-    //Tlc.clear();
-    for (int x = 0; x < MAX_CHANNEL; x++) {
-      Tlc.set(x, POW_LOW);
+  // save the current state as the last state for next time through the loop
+  lastButtonPrevState = buttonPrevState;
+  
+  // read the button input pin
+  buttonNextState = digitalRead(buttonNext);
+  // compare the buttonState to its last state
+  if (buttonNextState != lastButtonNextState) {
+    // if the state has changed, increment the counter
+    if (buttonNextState == HIGH) {
+      // if the current state is HIGH then the button went from off to on
+      buttonUpDnCounter++;
     }
-    if (channel > 0) {
-      Tlc.set(channel - 1, POW_NORM); 
-    } else {
-      Tlc.set(MAX_CHANNEL - 1, POW_NORM);
-    }
-    Tlc.set(channel, POW_HIGH);
-    if (channel < MAX_CHANNEL - 1) {
-      Tlc.set(channel + 1, POW_NORM);
-    } else {
-      Tlc.set(0, POW_NORM);
-    }
-    Tlc.update();
-
-    delay(75);
   }
+  // save the current state as the last state for next time through the loop
+  lastButtonNextState = buttonNextState;
+  
+  // turns on two corresponting LEDs by checking the modulo of the up-down counter
+  int activeChannel = buttonUpDnCounter % maxChannel;
+  for (int channel = 0; channel < maxChannel; channel += 1) {
+    if (channel == activeChannel) {
+      Tlc.set(channel, 100);
+    }
+    else {
+      Tlc.set(channel, 0);
+    }
+  } 
+}
 
+void allOn() {
+  Tlc.setAll(intensity);
 }
 

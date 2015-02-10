@@ -25,7 +25,12 @@
 #include <avr/interrupt.h>
 
 #include "Tlc5940.h"
+
+#if defined(ARDUINO) && ARDUINO >= 100
+#include "Arduino.h"
+#else
 #include "WProgram.h"
+#endif
 
 #ifndef TLC_FADE_BUFFER_LENGTH
 /** The default fade buffer length (24).  Uses 24*13 = 312 bytes of ram. */
@@ -51,7 +56,8 @@ uint8_t tlc_addFade(TLC_CHANNEL_TYPE channel, int16_t startValue,
                     int16_t endValue, uint32_t startMillis, uint32_t endMillis);
 uint8_t tlc_isFading(TLC_CHANNEL_TYPE channel);
 uint8_t tlc_removeFades(TLC_CHANNEL_TYPE channel);
-static void tlc_removeFadeFromBuffer(Tlc_Fade *current, Tlc_Fade *end);
+static void tlc_removeFadeFromBuffer(struct Tlc_Fade *current,
+                                     struct Tlc_Fade *end);
 
 /** \addtogroup ExtendedFunctions
     \code #include "tlc_fades.h" \endcode

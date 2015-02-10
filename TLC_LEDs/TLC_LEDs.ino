@@ -61,18 +61,30 @@ void setup()
 
 void loop()
 {
+  testAll();
 //  knightRider();
-  fillingOrChasing();
+//  fillingOrChasing();
+}
+
+void testAll() {;
+  int sensorValue = analogRead(0); // get the sensor value
+  int intensity = map(sensorValue, 0, 1023, 0, 4095); // map to TLC range
+  Tlc.clear();
+  for (int channel = 0; channel < 16*NUM_TLCS; channel += 1) {
+    Tlc.set(channel, intensity); // set the intensity for this LED
+  }
+    Tlc.update();
+    delay(75);
 }
 
 void knightRider() {
-  const int sensorPin = 0;
+  const int sensorPin = 4;
   int direction = 1;
-  int sensorValue = analogRead(sensorPin); // get the sensor value
+  int sensorValue = analogRead(0); // get the sensor value
   int intensity = map(sensorValue, 0, 1023, 0, 4095); // map to TLC range
   int dim = intensity / 4; // 1/4 the value dims the LED
 
-  for (int channel = 0; channel < 16; channel += direction) {
+  for (int channel = 0; channel < 16*NUM_TLCS; channel += direction) {
     Tlc.clear();
     if (channel == 0) {
       direction = 1;
@@ -85,7 +97,6 @@ void knightRider() {
     } else {
       direction = -1;
     }
-    
     Tlc.update();
     delay(75);
   }
@@ -102,7 +113,7 @@ void fillingOrChasing() {
     int val = digitalRead(inputPin);
     if (val == LOW) {
       Tlc.clear();
-      for (int channel = 0; channel < 16; channel++) {
+      for (int channel = 0; channel < 16*NUM_TLCS; channel++) {
         int pow = 0;
         switch (((channel-1)/PHALANXSIZE)%3) {
           case 2:
@@ -121,7 +132,7 @@ void fillingOrChasing() {
       delay(100);
       
       Tlc.clear();
-      for (int channel = 0; channel < 16; channel++) {
+      for (int channel = 0; channel < 16*NUM_TLCS; channel++) {
         int pow = 0;
         switch (((channel-1)/PHALANXSIZE)%3) {
           case 1:
@@ -140,7 +151,7 @@ void fillingOrChasing() {
       delay(100);
       
       Tlc.clear();
-      for (int channel = 0; channel < 16; channel++) {
+      for (int channel = 0; channel < 16*NUM_TLCS; channel++) {
         int pow = 0;
         switch (((channel-1)/PHALANXSIZE)%3) {
           case 2:
@@ -160,7 +171,7 @@ void fillingOrChasing() {
       
     } else {
       Tlc.clear();
-      for (int channel = 0; channel < 16; channel++) {
+      for (int channel = 0; channel < 16*NUM_TLCS; channel++) {
         Tlc.set(channel, POW_NORM);
         Tlc.update();
         delay(100);
