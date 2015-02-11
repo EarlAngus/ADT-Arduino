@@ -56,12 +56,12 @@ const int maxChannel = 16 * NUM_TLCS;
 
 int intensity = 0;
 int buttonUpDnCounter = 0;  // counter for the number of button presses
-int buttonPrevState = 0;    // current state of the button previous
+//int buttonPrevState = 0;    // current state of the button previous
 int buttonNextState = 0;    // current state of the button next
-int lastButtonPrevState = 0;    // current state of the button previous
+//int lastButtonPrevState = 0;    // current state of the button previous
 int lastButtonNextState = 0;    // current state of the button next
 
-
+int moonState = 0; // Beleuchtung
 
 void setup() {
   Tlc.init();
@@ -77,8 +77,9 @@ void setup() {
 void loop() {
   Tlc.clear();
   getBrightness();
-  
   nextState();
+  
+  illuminateMoon();
 
   Tlc.update();
   delay(75);
@@ -90,6 +91,7 @@ void getBrightness() {;
 }
 
 void nextState() {
+  /*
   // read the button input pin
   buttonPrevState = digitalRead(buttonPrev);
   // compare the buttonState to its last state
@@ -102,6 +104,7 @@ void nextState() {
   }
   // save the current state as the last state for next time through the loop
   lastButtonPrevState = buttonPrevState;
+  */
   
   // read the button input pin
   buttonNextState = digitalRead(buttonNext);
@@ -115,7 +118,66 @@ void nextState() {
   }
   // save the current state as the last state for next time through the loop
   lastButtonNextState = buttonNextState;
+}
+
+void illuminateMoon()
+{
+  boolean moonIncresing = (buttonUpDnCounter % 20) < 10;
+  int linesToActivate = (buttonUpDnCounter % 10) + 1;
+  int threshold;
   
+  switch (linesToActivate) {
+  case 1:
+    threshold = 1;
+    break;
+  case 2:
+    threshold = 4;
+    break;
+  case 3:
+    threshold = 8;
+    break;
+  case 4:
+    threshold = 12;
+    break;
+  case 5:
+    threshold = 16;
+    break;
+  case 6:
+    threshold = 20;
+    break;
+  case 7:
+    threshold = 24;
+    break;
+  case 8:
+    threshold = 28;
+    break;
+  case 9:
+    threshold = 31;
+    break;
+  case 10:
+    threshold = 32;
+    break;
+  default:;
+  }
+  threshold--;
+  
+  for (int channel = 0; channel < maxChannel; channel += 1) {  
+    if (moonIncresing) { 
+      // Newmoon and incresing
+      if (channel < threshold) {
+        Tlc.set(channel, intensity);
+      }
+    } else {
+      // Fullmoon and decresing
+      if (channel >= threshold) {
+        Tlc.set(channel, intensity);
+      }
+    }
+  }
+}
+
+void twoOn()
+{
   // turns on two corresponting LEDs by checking the modulo of the up-down counter
   int activeChannel = buttonUpDnCounter % maxChannel;
   for (int channel = 0; channel < maxChannel; channel += 1) {
@@ -125,7 +187,7 @@ void nextState() {
     else {
       Tlc.set(channel, 0);
     }
-  } 
+  }
 }
 
 void allOn() {
