@@ -127,34 +127,34 @@ void illuminateMoon()
   int threshold;
   
   switch (linesToActivate) {
-  case 1:
+  case 10:
     threshold = 1;
     break;
-  case 2:
+  case 9:
     threshold = 4;
     break;
-  case 3:
+  case 8:
     threshold = 8;
     break;
-  case 4:
+  case 7:
     threshold = 12;
     break;
-  case 5:
+  case 6:
     threshold = 16;
     break;
-  case 6:
+  case 5:
     threshold = 20;
     break;
-  case 7:
+  case 4:
     threshold = 24;
     break;
-  case 8:
+  case 3:
     threshold = 28;
     break;
-  case 9:
+  case 2:
     threshold = 31;
     break;
-  case 10:
+  case 1:
     threshold = 32;
     break;
   default:;
@@ -174,23 +174,5 @@ void illuminateMoon()
       }
     }
   }
-}
-
-void twoOn()
-{
-  // turns on two corresponting LEDs by checking the modulo of the up-down counter
-  int activeChannel = buttonUpDnCounter % maxChannel;
-  for (int channel = 0; channel < maxChannel; channel += 1) {
-    if (channel == activeChannel) {
-      Tlc.set(channel, 100);
-    }
-    else {
-      Tlc.set(channel, 0);
-    }
-  }
-}
-
-void allOn() {
-  Tlc.setAll(intensity);
 }
 
